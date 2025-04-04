@@ -2,3 +2,4 @@ data/
 notebooks/data/
 *.tar.gz
 venv/
+*.pth
