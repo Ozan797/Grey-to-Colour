@@ -1,14 +1,14 @@
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from io import BytesIO
 from PIL import Image
+import base64
 
-from model.generator import load_generator, run_inference
+from model.generator import load_generator, run_inference_variants
 
 app = FastAPI()
 
-# CORS settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,30 +17,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load trained model
 generator_model = load_generator("model.pth")
 
 @app.post("/api/colourise-image")
 async def colourise_image(file: UploadFile = File(...)):
     try:
-        print("\n📥 Received request...")
+        image = Image.open(BytesIO(await file.read())).convert("L")
 
-        contents = await file.read()
-        print("📸 Image bytes loaded")
+        # Get 3 variant outputs
+        variants = run_inference_variants(image, generator_model, count=3)
+        images_base64 = []
 
-        image = Image.open(BytesIO(contents)).convert("L")
-        print("✅ Converted to grayscale")
+        for img in variants:
+            buf = BytesIO()
+            img.save(buf, format="PNG")
+            img_bytes = base64.b64encode(buf.getvalue()).decode("utf-8")
+            images_base64.append(f"data:image/png;base64,{img_bytes}")
 
-        result = run_inference(image, generator_model)
-        print("🎨 Model inference complete")
-
-        buf = BytesIO()
-        result.save(buf, format="PNG")
-        buf.seek(0)
-        print("🧴 Image saved to buffer")
-
-        return StreamingResponse(buf, media_type="image/png")
+        return {"images": images_base64}
 
     except Exception as e:
-        print("❌ ERROR:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
