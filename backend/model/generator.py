@@ -24,7 +24,7 @@ def run_inference(image: Image.Image, model) -> Image.Image:
     output_img = (output.clamp(0, 1).permute(1, 2, 0).numpy() * 255).astype(np.uint8)
     return Image.fromarray(output_img)
 
-def run_inference_variants(image: Image.Image, model, count: int = 3):
+def run_inference_variants(image: Image.Image, model, count: int = 3, scale: float = 2.5):
     transform = T.Compose([
         T.Resize((256, 256)),
         T.ToTensor()
@@ -33,8 +33,8 @@ def run_inference_variants(image: Image.Image, model, count: int = 3):
     variants = []
 
     with torch.no_grad():
-        for _ in range(count):
-            z = torch.randn(1, 1, 256, 256)
+        for i in range(count):
+            z = torch.randn(1, 1, 256, 256) * scale
             output = model(x, z)[0]
             output_img = (output.clamp(0, 1).permute(1, 2, 0).numpy() * 255).astype(np.uint8)
             variants.append(Image.fromarray(output_img))

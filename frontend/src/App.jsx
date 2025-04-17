@@ -7,6 +7,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const lastFile = useRef(null);
+  const [variationStrength, setVariationStrength] = useState(2.5);
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -20,6 +21,7 @@ function App() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("variation_strength", variationStrength);
 
     try {
       const res = await fetch("http://localhost:8000/api/colourise-image", {
@@ -35,7 +37,7 @@ function App() {
         alert("Error colourising image.");
       }
     } catch (err) {
-      alert("Error connecting to backend.");
+      alert("Error connecting to backend.", err);
     }
 
     setLoading(false);
@@ -52,6 +54,21 @@ function App() {
   return (
     <div className="container">
       <h1>🎨 Grey to Colour</h1>
+
+      <div className="slider-container">
+        <label htmlFor="variation">
+          Variation Intensity: {variationStrength}
+        </label>
+        <input
+          type="range"
+          id="variation"
+          min="1"
+          max="10"
+          step="0.5"
+          value={variationStrength}
+          onChange={(e) => setVariationStrength(parseFloat(e.target.value))}
+        />
+      </div>
 
       <div
         className="dropzone"
@@ -73,33 +90,50 @@ function App() {
         />
       </div>
 
-      {original && (
-        <div className="image-grid">
+      {original && results.length > 0 && !loading && (
+        <div className="side-by-side">
           <div>
             <h2>Original</h2>
             <img src={original} alt="Original" />
           </div>
-        </div>
-      )}
 
-      {loading && <div className="spinner" />}
-
-      {results.length > 0 && !loading && (
-        <div className="carousel-wrapper">
-          <h2>Variation {activeIndex + 1}</h2>
-          <div className="carousel">
-            <button className="nav-button" onClick={prevImage} disabled={activeIndex === 0}>‹</button>
-            <img src={results[activeIndex]} alt={`Variation ${activeIndex + 1}`} />
-            <button className="nav-button" onClick={nextImage} disabled={activeIndex === results.length - 1}>›</button>
+          <div>
+            <h2>Variation {activeIndex + 1}</h2>
+            <div className="carousel">
+              <button
+                className="nav-button"
+                onClick={prevImage}
+                disabled={activeIndex === 0}
+              >
+                ‹
+              </button>
+              <img
+                src={results[activeIndex]}
+                alt={`Variation ${activeIndex + 1}`}
+              />
+              <button
+                className="nav-button"
+                onClick={nextImage}
+                disabled={activeIndex === results.length - 1}
+              >
+                ›
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {loading && <div className="spinner"></div>}
 
       {results.length > 0 && !loading && (
         <div className="feedback-form">
           <h3>Feedback</h3>
           <textarea placeholder="Tell us what you think..." />
-          <button onClick={() => alert("Feedback submitted (not saved)")}>Submit</button>
+          <button
+            onClick={() => alert("Feedback submitted (testing purposes only)")}
+          >
+            Submit
+          </button>
         </div>
       )}
     </div>
