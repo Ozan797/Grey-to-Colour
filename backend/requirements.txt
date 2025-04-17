@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pillow
+torch
+torchvision
+python-multipart
+pytest
+pytest-sugar

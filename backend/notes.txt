@@ -1,0 +1,5 @@
+http://localhost:8000/api/colourise-image
+Key: file  -> file type
+
+Run with:
+uvicorn main:app --reload
