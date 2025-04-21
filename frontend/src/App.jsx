@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 function App() {
@@ -33,11 +35,13 @@ function App() {
         const data = await res.json();
         await new Promise((resolve) => setTimeout(resolve, 500));
         setResults(data.images);
+        toast.success("Image processed successfully!");
       } else {
-        alert("Error colourising image.");
+        toast.error("Error colourising image.");
       }
     } catch (err) {
-      alert("Error connecting to backend.", err);
+      toast.error("Error connecting to backend.");
+      console.error("Upload error:", err);
     }
 
     setLoading(false);
@@ -53,6 +57,7 @@ function App() {
 
   return (
     <div className="container">
+      <ToastContainer />
       <h1>🎨 Grey to Colour</h1>
 
       <div className="slider-container">
@@ -130,7 +135,7 @@ function App() {
           <h3>Feedback</h3>
           <textarea placeholder="Tell us what you think..." />
           <button
-            onClick={() => alert("Feedback submitted (testing purposes only)")}
+            onClick={() => toast.info("Feedback submitted (testing only)")}
           >
             Submit
           </button>
